@@ -1380,6 +1380,9 @@ log("UI", "All tabs created")
 log("HOME", "Setting up Home tab...")
 local SelectedRegion = 101002
 
+-- Toggle References untuk restore state
+local Toggles = {}
+
 local function GetSortedDungeonNames()
     local names = {}
     for _, entry in ipairs(Database.RegionList) do
@@ -1395,6 +1398,7 @@ HomeTab:AddDropdown("SelectDungeon", {
     Callback = function(Val) 
         SelectedRegion = Database.GetRegionID(Val)
         log("HOME", "Selected: %s (ID: %d)", Val, SelectedRegion or 0)
+        Controller.UpdateConfig("SelectedDungeon", Val)
     end
 })
 
@@ -1413,14 +1417,15 @@ HomeTab:AddButton({
     end
 })
 
-HomeTab:AddToggle("StartFarm", {
+Toggles.AutoReplay = HomeTab:AddToggle("StartFarm", {
     Title = "Auto Replay (Loop)",
     Description = "Re-enter dungeon after finish/death",
-    Default = false,
+    Default = Controller.Config.AutoReplay or false,
     Callback = function(Val)
         log("HOME", "Auto Replay: %s", Val and "ON" or "OFF")
         local data = Database.NPC_Map[SelectedRegion]
         Controller.ToggleAutoReplay(Val, SelectedRegion, data)
+        Controller.UpdateConfig("AutoReplay", Val)
         
         Fluent:Notify({
             Title = "System", 
@@ -1430,12 +1435,13 @@ HomeTab:AddToggle("StartFarm", {
     end
 })
 
-HomeTab:AddToggle("AutoKill", {
+Toggles.AutoKill = HomeTab:AddToggle("AutoKill", {
     Title = "Auto Kill Aura",
-    Default = false,
+    Default = Controller.Config.AutoKill or false,
     Callback = function(Val)
         log("HOME", "Auto Kill: %s", Val and "ON" or "OFF")
         Controller.AutoKillEnabled = Val
+        Controller.UpdateConfig("AutoKill", Val)
         if Val then
             Controller.RunAutoKill(function(enemy)
                 local n = enemy:GetAttribute("name")
@@ -1447,11 +1453,12 @@ HomeTab:AddToggle("AutoKill", {
     end
 })
 
-HomeTab:AddToggle("AutoSkill", {
+Toggles.AutoSkill = HomeTab:AddToggle("AutoSkill", {
     Title = "Auto Skill",
-    Default = false,
+    Default = Controller.Config.AutoSkill or false,
     Callback = function(Val)
         log("HOME", "Auto Skill: %s", Val and "ON" or "OFF")
+        Controller.UpdateConfig("AutoSkill", Val)
         if Val then 
             Controller.RunAutoSkill(0.3, function() return false end)
         else 
@@ -1463,13 +1470,14 @@ HomeTab:AddToggle("AutoSkill", {
 local SkillPatternInput = HomeTab:AddInput("SkillPattern", {
     Title = "Custom Skill Pattern",
     Description = "Masukkan urutan skill 1-4 (angka langsung tanpa koma)",
-    Default = "1234",
+    Default = Controller.Config.SkillPattern or "1234",
     Placeholder = "contoh: 13423241232",
     Numeric = false,
     Finished = true,
     Callback = function(Val)
         log("HOME", "Skill Pattern input: %s", Val)
         local ok = Controller.SetSkillPatternFromString(Val)
+        Controller.UpdateConfig("SkillPattern", Val)
         
         if ok then
             local displayPattern = Controller.GetCurrentSkillPattern()
@@ -1520,14 +1528,16 @@ EventTab:AddDropdown("EventDest", {
     Callback = function(Val) 
         SelectedEventData = Database.GetEventData(Val)
         log("EVENT", "Selected: %s", Val)
+        Controller.UpdateConfig("SelectedEvent", Val)
     end
 })
 
-EventTab:AddToggle("LoopEvent", {
+Toggles.LoopEvent = EventTab:AddToggle("LoopEvent", {
     Title = "Auto Loop Event (Walk + Replay)",
     Description = "Auto walk again after death/finish",
-    Default = false,
+    Default = Controller.Config.LoopEvent or false,
     Callback = function(Val)
+        Controller.UpdateConfig("LoopEvent", Val)
         if Val then
             if SelectedEventData then
                 Fluent:Notify({
@@ -1571,12 +1581,13 @@ EventTab:AddButton({
     end
 })
 
-EventTab:AddToggle("Magnet", {
+Toggles.Magnet = EventTab:AddToggle("Magnet", {
     Title = "Auto Collect (Magnet)",
-    Default = false,
+    Default = Controller.Config.Magnet or false,
     Callback = function(Val)
         log("EVENT", "Magnet: %s", Val and "ON" or "OFF")
         Controller.MagnetActive = Val
+        Controller.UpdateConfig("Magnet", Val)
         if Val then 
             Controller.StartMagnet({
                 Delay = 0.1, 
@@ -1587,12 +1598,13 @@ EventTab:AddToggle("Magnet", {
     end
 })
 
-EventTab:AddToggle("ServerHop", {
+Toggles.ServerHop = EventTab:AddToggle("ServerHop", {
     Title = "Auto Server Hop",
     Description = "Pindah server jika ada 5+ pemain",
-    Default = false,
+    Default = Controller.Config.ServerHop or false,
     Callback = function(Val)
         log("EVENT", "Server Hop: %s", Val and "ON" or "OFF")
+        Controller.UpdateConfig("ServerHop", Val)
         if Val then
             Controller.StartServerHopMonitor()
             Fluent:Notify({
@@ -1650,6 +1662,7 @@ GuildTab:AddDropdown("GDiff", {
     Callback = function(Val) 
         SelectedGuild = Val
         log("GUILD", "Selected: %s", Val)
+        Controller.UpdateConfig("SelectedGuild", Val)
     end
 })
 
@@ -1672,9 +1685,10 @@ GuildTab:AddButton({
 GuildTab:AddToggle("AutoGuild", {
     Title = "Auto Guild Loop",
     Description = "Auto join and replay matches",
-    Default = false,
+    Default = Controller.Config.AutoGuild or false,
     Callback = function(Val)
         log("GUILD", "Guild Loop: %s", Val and "ON" or "OFF")
+        Controller.UpdateConfig("AutoGuild", Val)
         local matchData = Database.GetGuildData(SelectedGuild)
         local lobbyCFrame = Database.GetTeleportCFrame("Guild Island")
         
@@ -1776,18 +1790,20 @@ MiscTab:AddButton({
 
 MiscTab:AddToggle("Fly", { 
     Title = "Fly Mode", 
-    Default = false, 
+    Default = Controller.Config.Fly or false, 
     Callback = function(V) 
         log("MISC", "Fly: %s", V and "ON" or "OFF")
+        Controller.UpdateConfig("Fly", V)
         Controller.ToggleFly(V, 50) 
     end 
 })
 
 MiscTab:AddToggle("Noclip", { 
     Title = "Noclip", 
-    Default = false, 
+    Default = Controller.Config.Noclip or false, 
     Callback = function(V) 
         log("MISC", "Noclip: %s", V and "ON" or "OFF")
+        Controller.UpdateConfig("Noclip", V)
         Controller.ToggleNoclip(V) 
     end 
 })
@@ -1870,12 +1886,51 @@ log("INIT", "==========================================")
 
 -- Load saved config
 log("CONFIG", "Loading saved configuration...")
-Controller.LoadConfig()
+local configLoaded = Controller.LoadConfig()
+
+-- Apply loaded config to skill pattern if exists
+if Controller.Config.SkillPattern then
+    Controller.SetSkillPatternFromString(Controller.Config.SkillPattern)
+end
+
+-- Restore toggle states dari saved config
+if configLoaded then
+    log("CONFIG", "Restoring toggle states...")
+    
+    task.wait(0.5) -- Wait untuk UI fully loaded
+    
+    -- Restore toggles yang aktif
+    if Controller.Config.AutoKill and Toggles.AutoKill then
+        Toggles.AutoKill:SetValue(true)
+    end
+    
+    if Controller.Config.AutoSkill and Toggles.AutoSkill then
+        Toggles.AutoSkill:SetValue(true)
+    end
+    
+    if Controller.Config.AutoReplay and Toggles.AutoReplay then
+        Toggles.AutoReplay:SetValue(true)
+    end
+    
+    if Controller.Config.LoopEvent and Toggles.LoopEvent then
+        Toggles.LoopEvent:SetValue(true)
+    end
+    
+    if Controller.Config.Magnet and Toggles.Magnet then
+        Toggles.Magnet:SetValue(true)
+    end
+    
+    if Controller.Config.ServerHop and Toggles.ServerHop then
+        Toggles.ServerHop:SetValue(true)
+    end
+    
+    log("CONFIG", "Toggle states restored successfully")
+end
 
 Window:SelectTab(HomeTab)
 
 Fluent:Notify({
     Title = "Welcome", 
-    Content = "Lootify script loaded successfully!", 
+    Content = configLoaded and "Config loaded! Settingan Anda sudah diaktifkan." or "Lootify script loaded!", 
     Duration = 5
 })
