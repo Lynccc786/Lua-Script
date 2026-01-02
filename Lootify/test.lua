@@ -1030,7 +1030,7 @@ function Controller.ServerHop()
     
     -- Ensure script reloads on teleport
     pcall(function()
-        local SCRIPT_URL = "https://raw.githubusercontent.com/YourUsername/YourRepo/main/lootify.lua"
+        local SCRIPT_URL = "https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/Lootify/test.lua"
         local reloadScript = string.format([[
             task.wait(1)
             loadstring(game:HttpGet("%s"))()
