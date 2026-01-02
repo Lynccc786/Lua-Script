@@ -1125,17 +1125,18 @@ end
 -- [[ CONFIG MANAGEMENT ]]
 function Controller.SaveConfig()
     local success, result = pcall(function()
-        local HttpService = game:GetService("HttpService")
-        local json = HttpService:JSONEncode(Controller.Config)
-        
-        if writefile then
-            writefile(Controller.ConfigFile, json)
-            log("CONFIG", "Config saved successfully")
-            return true
-        else
+        if not writefile then
             warn("[CONFIG] writefile not supported by executor")
             return false
         end
+        
+        local HttpService = game:GetService("HttpService")
+        local json = HttpService:JSONEncode(Controller.Config)
+        
+        writefile(Controller.ConfigFile, json)
+        log("CONFIG", "Config saved to: %s", Controller.ConfigFile)
+        log("CONFIG", "Saved data: %s", json)
+        return true
     end)
     
     if not success then
@@ -1148,22 +1149,38 @@ end
 
 function Controller.LoadConfig()
     local success, result = pcall(function()
-        if readfile and isfile and isfile(Controller.ConfigFile) then
-            local HttpService = game:GetService("HttpService")
-            local json = readfile(Controller.ConfigFile)
-            local loaded = HttpService:JSONDecode(json)
-            
-            -- Merge loaded config with defaults (untuk backward compatibility)
-            for key, value in pairs(loaded) do
-                Controller.Config[key] = value
-            end
-            
-            log("CONFIG", "Config loaded successfully")
-            return true
-        else
-            log("CONFIG", "No config file found, using defaults")
+        -- Check if functions exist
+        if not readfile then
+            warn("[CONFIG] readfile not available in executor")
             return false
         end
+        
+        if not isfile then
+            warn("[CONFIG] isfile not available in executor")
+            return false
+        end
+        
+        if not isfile(Controller.ConfigFile) then
+            log("CONFIG", "No config file found at: %s", Controller.ConfigFile)
+            log("CONFIG", "Using default config")
+            return false
+        end
+        
+        log("CONFIG", "Config file found! Reading...")
+        local HttpService = game:GetService("HttpService")
+        local json = readfile(Controller.ConfigFile)
+        log("CONFIG", "JSON content: %s", json)
+        
+        local loaded = HttpService:JSONDecode(json)
+        
+        -- Merge loaded config with defaults
+        for key, value in pairs(loaded) do
+            Controller.Config[key] = value
+            log("CONFIG", "Loaded: %s = %s", key, tostring(value))
+        end
+        
+        log("CONFIG", "Config loaded successfully!")
+        return true
     end)
     
     if not success then
@@ -1364,6 +1381,10 @@ local Window = Fluent:CreateWindow({
     Theme = "Dark", 
     MinimizeKey = Enum.KeyCode.LeftControl
 })
+
+-- Options untuk akses toggles nanti
+local Options = Fluent.Options or {}
+
 log("UI", "Window created")
 
 log("UI", "Creating tabs...")
@@ -1371,7 +1392,7 @@ local HomeTab = Window:AddTab({ Title = "Dungeons", Icon = "swords" })
 local EventTab = Window:AddTab({ Title = "Event", Icon = "gift" })
 local GuildTab = Window:AddTab({ Title = "Guild War", Icon = "shield" })
 local MiscTab = Window:AddTab({ Title = "Misc", Icon = "box" })
-local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
+local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })    
 log("UI", "All tabs created")
 
 --------------------------------------------------------------------------------
@@ -1894,13 +1915,23 @@ if Controller.Config.SkillPattern then
 end
 
 -- Restore toggle states dari saved config (fungsi + UI)
+log("CONFIG", "Config loaded status: %s", tostring(configLoaded))
+log("CONFIG", "AutoKill in config: %s", tostring(Controller.Config.AutoKill))
+log("CONFIG", "AutoSkill in config: %s", tostring(Controller.Config.AutoSkill))
+
 if configLoaded then
     log("CONFIG", "Restoring toggle states...")
     
+    Fluent:Notify({
+        Title = "Debug",
+        Content = "Config loaded! Waiting 3s to restore...",
+        Duration = 3
+    })
+    
     task.spawn(function()
-        task.wait(1) -- Wait untuk UI dan game fully loaded
+        task.wait(3) -- Wait lebih lama untuk UI fully loaded
         
-        -- Restore Auto Kill (fungsi + toggle)
+        -- Restore Auto Kill (fungsi + toggle via Options)
         if Controller.Config.AutoKill then
             log("CONFIG", "Restoring Auto Kill...")
             Controller.AutoKillEnabled = true
@@ -1910,34 +1941,50 @@ if configLoaded then
                 if n == "The Krampus" and t ~= "Final Boss" then return true end
                 return false
             end)
-            if Toggles.AutoKill then
-                Toggles.AutoKill:SetValue(true)
-            end
+            
+            -- Coba berbagai cara akses toggle
+            pcall(function()
+                if Options and Options.AutoKill then
+                    Options.AutoKill:SetValue(true)
+                elseif Toggles.AutoKill then
+                    Toggles.AutoKill:SetValue(true)
+                end
+            end)
         end
         
-        -- Restore Auto Skill (fungsi + toggle)
+        -- Restore Auto Skill (fungsi + toggle via Options)
         if Controller.Config.AutoSkill then
             log("CONFIG", "Restoring Auto Skill...")
             Controller.RunAutoSkill(0.3, function() return false end)
-            if Toggles.AutoSkill then
-                Toggles.AutoSkill:SetValue(true)
-            end
+            
+            pcall(function()
+                if Options and Options.AutoSkill then
+                    Options.AutoSkill:SetValue(true)
+                elseif Toggles.AutoSkill then
+                    Toggles.AutoSkill:SetValue(true)
+                end
+            end)
         end
         
-        -- Restore Auto Replay (fungsi + toggle)
+        -- Restore Auto Replay (fungsi + toggle via Options)
         if Controller.Config.AutoReplay and Controller.Config.SelectedDungeon then
             log("CONFIG", "Restoring Auto Replay...")
             local regionID = Database.GetRegionID(Controller.Config.SelectedDungeon)
             if regionID then
                 local data = Database.NPC_Map[regionID]
                 Controller.ToggleAutoReplay(true, regionID, data)
-                if Toggles.AutoReplay then
-                    Toggles.AutoReplay:SetValue(true)
-                end
+                
+                pcall(function()
+                    if Options and Options.StartFarm then
+                        Options.StartFarm:SetValue(true)
+                    elseif Toggles.AutoReplay then
+                        Toggles.AutoReplay:SetValue(true)
+                    end
+                end)
             end
         end
         
-        -- Restore Magnet (fungsi + toggle)
+        -- Restore Magnet (fungsi + toggle via Options)
         if Controller.Config.Magnet then
             log("CONFIG", "Restoring Magnet...")
             Controller.MagnetActive = true
@@ -1946,29 +1993,44 @@ if configLoaded then
                 ChestName = "HalloweenChestPrefab", 
                 ItemFolder = "SugarFolder"
             })
-            if Toggles.Magnet then
-                Toggles.Magnet:SetValue(true)
-            end
+            
+            pcall(function()
+                if Options and Options.Magnet then
+                    Options.Magnet:SetValue(true)
+                elseif Toggles.Magnet then
+                    Toggles.Magnet:SetValue(true)
+                end
+            end)
         end
         
-        -- Restore Server Hop (fungsi + toggle)
+        -- Restore Server Hop (fungsi + toggle via Options)
         if Controller.Config.ServerHop then
             log("CONFIG", "Restoring Server Hop...")
             Controller.StartServerHopMonitor()
-            if Toggles.ServerHop then
-                Toggles.ServerHop:SetValue(true)
-            end
+            
+            pcall(function()
+                if Options and Options.ServerHop then
+                    Options.ServerHop:SetValue(true)
+                elseif Toggles.ServerHop then
+                    Toggles.ServerHop:SetValue(true)
+                end
+            end)
         end
         
-        -- Restore Loop Event (fungsi + toggle)
+        -- Restore Loop Event (fungsi + toggle via Options)
         if Controller.Config.LoopEvent and Controller.Config.SelectedEvent then
             log("CONFIG", "Restoring Loop Event...")
             local eventData = Database.GetEventData(Controller.Config.SelectedEvent)
             if eventData then
                 Controller.StartEventLoop(eventData.CFrame, Database.ManualWaypoints)
-                if Toggles.LoopEvent then
-                    Toggles.LoopEvent:SetValue(true)
-                end
+                
+                pcall(function()
+                    if Options and Options.LoopEvent then
+                        Options.LoopEvent:SetValue(true)
+                    elseif Toggles.LoopEvent then
+                        Toggles.LoopEvent:SetValue(true)
+                    end
+                end)
             end
         end
         
