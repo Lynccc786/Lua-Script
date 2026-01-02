@@ -196,24 +196,9 @@ Controller.FlySpeed = 50
 
 -- Config Storage
 Controller.ConfigFile = "LootifyConfig.json"
-Controller.Config = {
-    SelectedDungeon = "1 - Starter",
-    SelectedEvent = "1 Key",
-    SelectedGuild = "Medium",
-    SkillPattern = "1234",
-    AutoFarm = false,
-    AutoKill = false,
-    AutoSkill = false,
-    AutoReplay = false,
-    LoopEvent = false,
-    Magnet = false,
-    ServerHop = false,
-    ServerHopLimit = 5,
-    AutoGuild = false,
-    Noclip = false,
-    Fly = false,
-    StuckDetector = false
-}
+
+-- DON'T initialize with defaults - will be loaded from file
+Controller.Config = {}
 
 local AUTO_PATHFIND_THRESHOLD = 80
 local NoclipConnection, FlyConnection, ReplayConnection, GuildReplayConnection, StuckLoop
@@ -1160,11 +1145,49 @@ end
 function Controller.LoadConfig()
     if not readfile or not isfile then
         warn("[CONFIG] ❌ readfile/isfile not supported!")
+        -- Set defaults if can't load
+        Controller.Config = {
+            SelectedDungeon = "1 - Starter",
+            SelectedEvent = "1 Key",
+            SelectedGuild = "Medium",
+            SkillPattern = "1234",
+            AutoFarm = false,
+            AutoKill = false,
+            AutoSkill = false,
+            AutoReplay = false,
+            LoopEvent = false,
+            Magnet = false,
+            ServerHop = false,
+            ServerHopLimit = 5,
+            AutoGuild = false,
+            Noclip = false,
+            Fly = false,
+            StuckDetector = false
+        }
         return false
     end
     
     if not isfile(Controller.ConfigFile) then
         print("[CONFIG] ⚠️ No config file - using defaults")
+        -- Set defaults
+        Controller.Config = {
+            SelectedDungeon = "1 - Starter",
+            SelectedEvent = "1 Key",
+            SelectedGuild = "Medium",
+            SkillPattern = "1234",
+            AutoFarm = false,
+            AutoKill = false,
+            AutoSkill = false,
+            AutoReplay = false,
+            LoopEvent = false,
+            Magnet = false,
+            ServerHop = false,
+            ServerHopLimit = 5,
+            AutoGuild = false,
+            Noclip = false,
+            Fly = false,
+            StuckDetector = false
+        }
         return false
     end
     
@@ -1174,8 +1197,12 @@ function Controller.LoadConfig()
         print("[CONFIG] 📖 READ: " .. json)
         
         local loaded = HttpService:JSONDecode(json)
-        for key, value in pairs(loaded) do
-            Controller.Config[key] = value
+        
+        -- IMPORTANT: Replace entire config, don't merge
+        Controller.Config = loaded
+        
+        print("[CONFIG] ✅ Config loaded from file!")
+        for key, value in pairs(Controller.Config) do
             print(string.format("[CONFIG] ✅ %s = %s", key, tostring(value)))
         end
     end)
