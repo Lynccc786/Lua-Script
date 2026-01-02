@@ -1122,78 +1122,69 @@ function Controller.StopServerHopMonitor()
     log("CTRL", "Server hop monitor stopped")
 end
 
--- [[ CONFIG MANAGEMENT ]]
+-- [[ SIMPLE CONFIG SYSTEM ]]
 function Controller.SaveConfig()
-    local success, result = pcall(function()
-        if not writefile then
-            warn("[CONFIG] writefile not supported by executor")
-            return false
-        end
-        
-        local HttpService = game:GetService("HttpService")
-        local json = HttpService:JSONEncode(Controller.Config)
-        
-        writefile(Controller.ConfigFile, json)
-        log("CONFIG", "Config saved to: %s", Controller.ConfigFile)
-        log("CONFIG", "Saved data: %s", json)
-        return true
-    end)
-    
-    if not success then
-        warn("[CONFIG] Failed to save config:", result)
+    if not writefile then
+        warn("[CONFIG] ❌ writefile not supported!")
         return false
     end
     
-    return result
+    pcall(function()
+        local HttpService = game:GetService("HttpService")
+        
+        -- IMPORTANT: Encode current state
+        local json = HttpService:JSONEncode(Controller.Config)
+        
+        print("[CONFIG] 💾 SAVING TO FILE...")
+        print("[CONFIG] JSON: " .. json)
+        
+        writefile(Controller.ConfigFile, json)
+        
+        -- VERIFY: Read back and confirm
+        if isfile and readfile and isfile(Controller.ConfigFile) then
+            local readBack = readfile(Controller.ConfigFile)
+            print("[CONFIG] ✅ FILE SAVED!")
+            print("[CONFIG] READ BACK: " .. readBack)
+            
+            -- Verify it matches
+            if readBack == json then
+                print("[CONFIG] ✅✅ VERIFIED: File content matches!")
+            else
+                warn("[CONFIG] ⚠️ WARNING: File content mismatch!")
+            end
+        end
+    end)
+    return true
 end
 
 function Controller.LoadConfig()
-    local success, result = pcall(function()
-        -- Check if functions exist
-        if not readfile then
-            warn("[CONFIG] readfile not available in executor")
-            return false
-        end
-        
-        if not isfile then
-            warn("[CONFIG] isfile not available in executor")
-            return false
-        end
-        
-        if not isfile(Controller.ConfigFile) then
-            log("CONFIG", "No config file found at: %s", Controller.ConfigFile)
-            log("CONFIG", "Using default config")
-            return false
-        end
-        
-        log("CONFIG", "Config file found! Reading...")
-        local HttpService = game:GetService("HttpService")
-        local json = readfile(Controller.ConfigFile)
-        log("CONFIG", "JSON content: %s", json)
-        
-        local loaded = HttpService:JSONDecode(json)
-        
-        -- Merge loaded config with defaults
-        for key, value in pairs(loaded) do
-            Controller.Config[key] = value
-            log("CONFIG", "Loaded: %s = %s", key, tostring(value))
-        end
-        
-        log("CONFIG", "Config loaded successfully!")
-        return true
-    end)
-    
-    if not success then
-        warn("[CONFIG] Failed to load config:", result)
+    if not readfile or not isfile then
+        warn("[CONFIG] ❌ readfile/isfile not supported!")
         return false
     end
     
-    return result
+    if not isfile(Controller.ConfigFile) then
+        print("[CONFIG] ⚠️ No config file - using defaults")
+        return false
+    end
+    
+    local ok = pcall(function()
+        local HttpService = game:GetService("HttpService")
+        local json = readfile(Controller.ConfigFile)
+        print("[CONFIG] 📖 READ: " .. json)
+        
+        local loaded = HttpService:JSONDecode(json)
+        for key, value in pairs(loaded) do
+            Controller.Config[key] = value
+            print(string.format("[CONFIG] ✅ %s = %s", key, tostring(value)))
+        end
+    end)
+    
+    return ok
 end
 
 function Controller.ResetConfig()
-    local success = pcall(function()
-        -- Reset to defaults
+    pcall(function()
         Controller.Config = {
             SelectedDungeon = "1 - Starter",
             SelectedEvent = "1 Key",
@@ -1212,21 +1203,33 @@ function Controller.ResetConfig()
             Fly = false,
             StuckDetector = false
         }
-        
-        -- Delete file
         if delfile and isfile and isfile(Controller.ConfigFile) then
             delfile(Controller.ConfigFile)
         end
-        
-        log("CONFIG", "Config reset to defaults")
+        print("[CONFIG] ✅ Reset to defaults")
     end)
-    
-    return success
+    return true
 end
 
 function Controller.UpdateConfig(key, value)
+    print(string.format("[CONFIG] 🔧 UPDATE START: %s = %s", key, tostring(value)))
+    
+    -- Update config
     Controller.Config[key] = value
+    
+    -- Verify update
+    print(string.format("[CONFIG] ✅ VERIFIED: Config.%s = %s", key, tostring(Controller.Config[key])))
+    
+    -- Print entire config before save
+    print("[CONFIG] === FULL CONFIG BEFORE SAVE ===")
+    for k, v in pairs(Controller.Config) do
+        print(string.format("[CONFIG]   %s = %s", k, tostring(v)))
+    end
+    print("[CONFIG] ====================================")
+    
+    -- Save
     Controller.SaveConfig()
+    print("[CONFIG] ✅ UPDATE COMPLETE")
 end
 
 log("CONTROLLER", "Controller module loaded (Fixed)")
@@ -1250,29 +1253,30 @@ log("INIT", "==========================================")
 -- [[ AUTO-RELOAD SCRIPT ON TELEPORT ]]
 log("INIT", "Setting up auto-reload on teleport...")
 
--- Cara 1: Jika script dari URL (Ganti dengan URL script Anda)
-local SCRIPT_URL = "https://raw.githubusercontent.com/YourUsername/YourRepo/main/lootify.lua"
+-- IMPORTANT: URL script yang valid dan terupdate!
+local SCRIPT_URL = "https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/Lootify/test.lua"
 
--- Cara 2: Atau gunakan script source langsung (simpan script ke variable)
 local function setupAutoReload()
     local reloadCode = string.format([[
         task.wait(1)
+        print("[AUTO-RELOAD] Loading script from URL...")
         loadstring(game:HttpGet("%s"))()
     ]], SCRIPT_URL)
     
     local success = pcall(function()
         if syn and syn.queue_on_teleport then
             syn.queue_on_teleport(reloadCode)
-            log("INIT", "Auto-reload: syn.queue_on_teleport ✓")
+            log("INIT", "✅ Auto-reload: syn.queue_on_teleport")
         elseif queue_on_teleport then
             queue_on_teleport(reloadCode)
-            log("INIT", "Auto-reload: queue_on_teleport ✓")
+            log("INIT", "✅ Auto-reload: queue_on_teleport")
         elseif queueonteleport then
             queueonteleport(reloadCode)
-            log("INIT", "Auto-reload: queueonteleport ✓")
+            log("INIT", "✅ Auto-reload: queueonteleport")
         else
-            warn("[INIT] ⚠ Executor tidak support queue_on_teleport")
-            warn("[INIT] Script akan hilang saat server hop!")
+            warn("[INIT] ❌ Executor doesn't support queue_on_teleport")
+            warn("[INIT] ⚠️ Script will NOT reload on server hop!")
+            warn("[INIT] ⚠️ You must execute manually after hop")
             return false
         end
     end)
@@ -1281,6 +1285,18 @@ local function setupAutoReload()
 end
 
 setupAutoReload()
+
+-- [[ LOAD CONFIG FIRST - BEFORE UI ]]
+print("==============================================")
+print("[CONFIG] 🔄 LOADING CONFIG (BEFORE UI)...")
+print("==============================================")
+Controller.LoadConfig()
+
+print("[CONFIG] === LOADED CONFIG ===")
+for k, v in pairs(Controller.Config) do
+    print(string.format("[CONFIG] %s = %s", k, tostring(v)))
+end
+print("[CONFIG] ==========================")
 
 log("INIT", "Loading Fluent UI library...")
 local success, Fluent = pcall(function()
@@ -1905,149 +1921,64 @@ log("INIT", "==========================================")
 log("INIT", "Script loaded successfully!")
 log("INIT", "==========================================")
 
--- Load saved config
-log("CONFIG", "Loading saved configuration...")
-local configLoaded = Controller.LoadConfig()
+-- Config sudah loaded di awal (sebelum UI dibuat)
+-- Jadi Default value toggle sudah correct
 
--- Apply loaded config to skill pattern if exists
+-- Apply skill pattern
 if Controller.Config.SkillPattern then
     Controller.SetSkillPatternFromString(Controller.Config.SkillPattern)
 end
 
--- Restore toggle states dari saved config (fungsi + UI)
-log("CONFIG", "Config loaded status: %s", tostring(configLoaded))
-log("CONFIG", "AutoKill in config: %s", tostring(Controller.Config.AutoKill))
-log("CONFIG", "AutoSkill in config: %s", tostring(Controller.Config.AutoSkill))
-
-if configLoaded then
-    log("CONFIG", "Restoring toggle states...")
-    
-    Fluent:Notify({
-        Title = "Debug",
-        Content = "Config loaded! Waiting 3s to restore...",
-        Duration = 3
-    })
-    
-    task.spawn(function()
-        task.wait(3) -- Wait lebih lama untuk UI fully loaded
-        
-        -- Restore Auto Kill (fungsi + toggle via Options)
-        if Controller.Config.AutoKill then
-            log("CONFIG", "Restoring Auto Kill...")
-            Controller.AutoKillEnabled = true
-            Controller.RunAutoKill(function(enemy)
-                local n = enemy:GetAttribute("name")
-                local t = enemy:GetAttribute("enemyTitle")
-                if n == "The Krampus" and t ~= "Final Boss" then return true end
-                return false
-            end)
-            
-            -- Coba berbagai cara akses toggle
-            pcall(function()
-                if Options and Options.AutoKill then
-                    Options.AutoKill:SetValue(true)
-                elseif Toggles.AutoKill then
-                    Toggles.AutoKill:SetValue(true)
-                end
-            end)
-        end
-        
-        -- Restore Auto Skill (fungsi + toggle via Options)
-        if Controller.Config.AutoSkill then
-            log("CONFIG", "Restoring Auto Skill...")
-            Controller.RunAutoSkill(0.3, function() return false end)
-            
-            pcall(function()
-                if Options and Options.AutoSkill then
-                    Options.AutoSkill:SetValue(true)
-                elseif Toggles.AutoSkill then
-                    Toggles.AutoSkill:SetValue(true)
-                end
-            end)
-        end
-        
-        -- Restore Auto Replay (fungsi + toggle via Options)
-        if Controller.Config.AutoReplay and Controller.Config.SelectedDungeon then
-            log("CONFIG", "Restoring Auto Replay...")
-            local regionID = Database.GetRegionID(Controller.Config.SelectedDungeon)
-            if regionID then
-                local data = Database.NPC_Map[regionID]
-                Controller.ToggleAutoReplay(true, regionID, data)
-                
-                pcall(function()
-                    if Options and Options.StartFarm then
-                        Options.StartFarm:SetValue(true)
-                    elseif Toggles.AutoReplay then
-                        Toggles.AutoReplay:SetValue(true)
-                    end
-                end)
-            end
-        end
-        
-        -- Restore Magnet (fungsi + toggle via Options)
-        if Controller.Config.Magnet then
-            log("CONFIG", "Restoring Magnet...")
-            Controller.MagnetActive = true
-            Controller.StartMagnet({
-                Delay = 0.1, 
-                ChestName = "HalloweenChestPrefab", 
-                ItemFolder = "SugarFolder"
-            })
-            
-            pcall(function()
-                if Options and Options.Magnet then
-                    Options.Magnet:SetValue(true)
-                elseif Toggles.Magnet then
-                    Toggles.Magnet:SetValue(true)
-                end
-            end)
-        end
-        
-        -- Restore Server Hop (fungsi + toggle via Options)
-        if Controller.Config.ServerHop then
-            log("CONFIG", "Restoring Server Hop...")
-            Controller.StartServerHopMonitor()
-            
-            pcall(function()
-                if Options and Options.ServerHop then
-                    Options.ServerHop:SetValue(true)
-                elseif Toggles.ServerHop then
-                    Toggles.ServerHop:SetValue(true)
-                end
-            end)
-        end
-        
-        -- Restore Loop Event (fungsi + toggle via Options)
-        if Controller.Config.LoopEvent and Controller.Config.SelectedEvent then
-            log("CONFIG", "Restoring Loop Event...")
-            local eventData = Database.GetEventData(Controller.Config.SelectedEvent)
-            if eventData then
-                Controller.StartEventLoop(eventData.CFrame, Database.ManualWaypoints)
-                
-                pcall(function()
-                    if Options and Options.LoopEvent then
-                        Options.LoopEvent:SetValue(true)
-                    elseif Toggles.LoopEvent then
-                        Toggles.LoopEvent:SetValue(true)
-                    end
-                end)
-            end
-        end
-        
-        log("CONFIG", "All features restored successfully!")
-        
-        Fluent:Notify({
-            Title = "Config Restored",
-            Content = "Settingan Anda telah diaktifkan kembali!",
-            Duration = 4
-        })
-    end)
-end
-
 Window:SelectTab(HomeTab)
+
+-- AUTO-RESTORE
+task.spawn(function()
+    task.wait(2)
+    print("[CONFIG] 🔧 RESTORING...")
+    
+    if Controller.Config.AutoKill then
+        print("[CONFIG] ✅ AutoKill")
+        Controller.AutoKillEnabled = true
+        Controller.RunAutoKill(function(e)
+            local n = e:GetAttribute("name")
+            local t = e:GetAttribute("enemyTitle")
+            return n == "The Krampus" and t ~= "Final Boss"
+        end)
+    end
+    
+    if Controller.Config.AutoSkill then
+        print("[CONFIG] ✅ AutoSkill")
+        Controller.RunAutoSkill(0.3, function() return false end)
+    end
+    
+    if Controller.Config.AutoReplay and Controller.Config.SelectedDungeon then
+        print("[CONFIG] ✅ AutoReplay")
+        local id = Database.GetRegionID(Controller.Config.SelectedDungeon)
+        if id then Controller.ToggleAutoReplay(true, id, Database.NPC_Map[id]) end
+    end
+    
+    if Controller.Config.Magnet then
+        print("[CONFIG] ✅ Magnet")
+        Controller.MagnetActive = true
+        Controller.StartMagnet({Delay=0.1, ChestName="HalloweenChestPrefab", ItemFolder="SugarFolder"})
+    end
+    
+    if Controller.Config.ServerHop then
+        print("[CONFIG] ✅ ServerHop")
+        Controller.StartServerHopMonitor()
+    end
+    
+    if Controller.Config.LoopEvent and Controller.Config.SelectedEvent then
+        print("[CONFIG] ✅ LoopEvent")
+        local e = Database.GetEventData(Controller.Config.SelectedEvent)
+        if e then Controller.StartEventLoop(e.CFrame, Database.ManualWaypoints) end
+    end
+    
+    print("[CONFIG] ✅ DONE")
+end)
 
 Fluent:Notify({
     Title = "Welcome", 
-    Content = configLoaded and "Config loaded! Settingan Anda sudah diaktifkan." or "Lootify script loaded!", 
+    Content = "Lootify script loaded!", 
     Duration = 5
 })
