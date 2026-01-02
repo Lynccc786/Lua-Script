@@ -1034,22 +1034,8 @@ end
 function Controller.ServerHop()
     log("CTRL", "Attempting to server hop...")
     
-    -- Ensure script reloads on teleport
-    pcall(function()
-        local SCRIPT_URL = "https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/Lootify/test.lua"
-        local reloadScript = string.format([[
-            task.wait(1)
-            loadstring(game:HttpGet("%s"))()
-        ]], SCRIPT_URL)
-        
-        if syn and syn.queue_on_teleport then
-            syn.queue_on_teleport(reloadScript)
-        elseif queue_on_teleport then
-            queue_on_teleport(reloadScript)
-        elseif queueonteleport then
-            queueonteleport(reloadScript)
-        end
-    end)
+    -- Auto-reload sudah di-setup di setupAutoReload()
+    -- JANGAN queue lagi disini untuk prevent double GUI!
     
     local success, result = pcall(function()
         local HttpService = game:GetService("HttpService")
