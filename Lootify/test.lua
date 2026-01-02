@@ -1893,38 +1893,75 @@ if Controller.Config.SkillPattern then
     Controller.SetSkillPatternFromString(Controller.Config.SkillPattern)
 end
 
--- Restore toggle states dari saved config
+-- Restore toggle states dari saved config (langsung trigger fungsi)
 if configLoaded then
     log("CONFIG", "Restoring toggle states...")
     
-    task.wait(0.5) -- Wait untuk UI fully loaded
-    
-    -- Restore toggles yang aktif
-    if Controller.Config.AutoKill and Toggles.AutoKill then
-        Toggles.AutoKill:SetValue(true)
-    end
-    
-    if Controller.Config.AutoSkill and Toggles.AutoSkill then
-        Toggles.AutoSkill:SetValue(true)
-    end
-    
-    if Controller.Config.AutoReplay and Toggles.AutoReplay then
-        Toggles.AutoReplay:SetValue(true)
-    end
-    
-    if Controller.Config.LoopEvent and Toggles.LoopEvent then
-        Toggles.LoopEvent:SetValue(true)
-    end
-    
-    if Controller.Config.Magnet and Toggles.Magnet then
-        Toggles.Magnet:SetValue(true)
-    end
-    
-    if Controller.Config.ServerHop and Toggles.ServerHop then
-        Toggles.ServerHop:SetValue(true)
-    end
-    
-    log("CONFIG", "Toggle states restored successfully")
+    task.spawn(function()
+        task.wait(1) -- Wait untuk UI dan game fully loaded
+        
+        -- Restore Auto Kill
+        if Controller.Config.AutoKill then
+            log("CONFIG", "Restoring Auto Kill...")
+            Controller.AutoKillEnabled = true
+            Controller.RunAutoKill(function(enemy)
+                local n = enemy:GetAttribute("name")
+                local t = enemy:GetAttribute("enemyTitle")
+                if n == "The Krampus" and t ~= "Final Boss" then return true end
+                return false
+            end)
+        end
+        
+        -- Restore Auto Skill
+        if Controller.Config.AutoSkill then
+            log("CONFIG", "Restoring Auto Skill...")
+            Controller.RunAutoSkill(0.3, function() return false end)
+        end
+        
+        -- Restore Auto Replay
+        if Controller.Config.AutoReplay and Controller.Config.SelectedDungeon then
+            log("CONFIG", "Restoring Auto Replay...")
+            local regionID = Database.GetRegionID(Controller.Config.SelectedDungeon)
+            if regionID then
+                local data = Database.NPC_Map[regionID]
+                Controller.ToggleAutoReplay(true, regionID, data)
+            end
+        end
+        
+        -- Restore Magnet
+        if Controller.Config.Magnet then
+            log("CONFIG", "Restoring Magnet...")
+            Controller.MagnetActive = true
+            Controller.StartMagnet({
+                Delay = 0.1, 
+                ChestName = "HalloweenChestPrefab", 
+                ItemFolder = "SugarFolder"
+            })
+        end
+        
+        -- Restore Server Hop
+        if Controller.Config.ServerHop then
+            log("CONFIG", "Restoring Server Hop...")
+            Controller.StartServerHopMonitor()
+        end
+        
+        -- Restore Loop Event
+        if Controller.Config.LoopEvent and Controller.Config.SelectedEvent then
+            log("CONFIG", "Restoring Loop Event...")
+            local eventData = Database.GetEventData(Controller.Config.SelectedEvent)
+            if eventData then
+                Controller.StartEventLoop(eventData.CFrame, Database.ManualWaypoints)
+            end
+        end
+        
+        log("CONFIG", "All features restored successfully!")
+        
+        Fluent:Notify({
+            Title = "Config Restored",
+            Content = "Settingan Anda telah diaktifkan kembali!",
+            Duration = 4
+        })
+    end)
 end
 
 Window:SelectTab(HomeTab)
