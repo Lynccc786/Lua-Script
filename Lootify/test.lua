@@ -1963,6 +1963,24 @@ task.spawn(function()
     task.wait(2)
     print("[CONFIG] 🔧 RESTORING...")
     
+    -- IMPORTANT: Reset all state variables first
+    Controller.IsLooping = false
+    Controller.IsMoving = false
+    Controller.AutoKillEnabled = false
+    Controller.AutoSkillEnabled = false
+    Controller.MagnetActive = false
+    Controller.AutoReplayEnabled = false
+    Controller.ServerHopEnabled = false
+    
+    -- Stop any existing loops/connections
+    if Controller.CurrentMoveConnection then
+        Controller.CurrentMoveConnection:Disconnect()
+        Controller.CurrentMoveConnection = nil
+    end
+    
+    print("[CONFIG] ✅ State reset complete")
+    
+    -- Now restore features from config
     if Controller.Config.AutoKill then
         print("[CONFIG] ✅ AutoKill")
         Controller.AutoKillEnabled = true
@@ -1996,9 +2014,20 @@ task.spawn(function()
     end
     
     if Controller.Config.LoopEvent and Controller.Config.SelectedEvent then
-        print("[CONFIG] ✅ LoopEvent")
-        local e = Database.GetEventData(Controller.Config.SelectedEvent)
-        if e then Controller.StartEventLoop(e.CFrame, Database.ManualWaypoints) end
+        print("[CONFIG] ✅ LoopEvent - Loading event data...")
+        local eventData = Database.GetEventData(Controller.Config.SelectedEvent)
+        if eventData then
+            print(string.format("[CONFIG] Event: %s, CFrame: %s", Controller.Config.SelectedEvent, tostring(eventData.CFrame)))
+            
+            -- Wait a bit for character to fully load
+            task.wait(1)
+            
+            -- Start event loop fresh
+            Controller.StartEventLoop(eventData.CFrame, Database.ManualWaypoints)
+            print("[CONFIG] ✅ LoopEvent started!")
+        else
+            warn("[CONFIG] ❌ Event data not found for: " .. tostring(Controller.Config.SelectedEvent))
+        end
     end
     
     print("[CONFIG] ✅ DONE")
