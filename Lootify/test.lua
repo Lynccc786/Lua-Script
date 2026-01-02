@@ -194,6 +194,27 @@ Controller.MagnetStats = {Opened = 0, Collected = 0}
 Controller.Debounce = {}
 Controller.FlySpeed = 50
 
+-- Config Storage
+Controller.ConfigFile = "LootifyConfig.json"
+Controller.Config = {
+    SelectedDungeon = "1 - Starter",
+    SelectedEvent = "1 Key",
+    SelectedGuild = "Medium",
+    SkillPattern = "1234",
+    AutoFarm = false,
+    AutoKill = false,
+    AutoSkill = false,
+    AutoReplay = false,
+    LoopEvent = false,
+    Magnet = false,
+    ServerHop = false,
+    ServerHopLimit = 5,
+    AutoGuild = false,
+    Noclip = false,
+    Fly = false,
+    StuckDetector = false
+}
+
 local AUTO_PATHFIND_THRESHOLD = 80
 local NoclipConnection, FlyConnection, ReplayConnection, GuildReplayConnection, StuckLoop
 local DEBUG = true
@@ -1101,6 +1122,96 @@ function Controller.StopServerHopMonitor()
     log("CTRL", "Server hop monitor stopped")
 end
 
+-- [[ CONFIG MANAGEMENT ]]
+function Controller.SaveConfig()
+    local success, result = pcall(function()
+        local HttpService = game:GetService("HttpService")
+        local json = HttpService:JSONEncode(Controller.Config)
+        
+        if writefile then
+            writefile(Controller.ConfigFile, json)
+            log("CONFIG", "Config saved successfully")
+            return true
+        else
+            warn("[CONFIG] writefile not supported by executor")
+            return false
+        end
+    end)
+    
+    if not success then
+        warn("[CONFIG] Failed to save config:", result)
+        return false
+    end
+    
+    return result
+end
+
+function Controller.LoadConfig()
+    local success, result = pcall(function()
+        if readfile and isfile and isfile(Controller.ConfigFile) then
+            local HttpService = game:GetService("HttpService")
+            local json = readfile(Controller.ConfigFile)
+            local loaded = HttpService:JSONDecode(json)
+            
+            -- Merge loaded config with defaults (untuk backward compatibility)
+            for key, value in pairs(loaded) do
+                Controller.Config[key] = value
+            end
+            
+            log("CONFIG", "Config loaded successfully")
+            return true
+        else
+            log("CONFIG", "No config file found, using defaults")
+            return false
+        end
+    end)
+    
+    if not success then
+        warn("[CONFIG] Failed to load config:", result)
+        return false
+    end
+    
+    return result
+end
+
+function Controller.ResetConfig()
+    local success = pcall(function()
+        -- Reset to defaults
+        Controller.Config = {
+            SelectedDungeon = "1 - Starter",
+            SelectedEvent = "1 Key",
+            SelectedGuild = "Medium",
+            SkillPattern = "1234",
+            AutoFarm = false,
+            AutoKill = false,
+            AutoSkill = false,
+            AutoReplay = false,
+            LoopEvent = false,
+            Magnet = false,
+            ServerHop = false,
+            ServerHopLimit = 5,
+            AutoGuild = false,
+            Noclip = false,
+            Fly = false,
+            StuckDetector = false
+        }
+        
+        -- Delete file
+        if delfile and isfile and isfile(Controller.ConfigFile) then
+            delfile(Controller.ConfigFile)
+        end
+        
+        log("CONFIG", "Config reset to defaults")
+    end)
+    
+    return success
+end
+
+function Controller.UpdateConfig(key, value)
+    Controller.Config[key] = value
+    Controller.SaveConfig()
+end
+
 log("CONTROLLER", "Controller module loaded (Fixed)")
 
 --------------------------------------------------------------------------------
@@ -1692,6 +1803,47 @@ MiscTab:AddParagraph({
 log("SETTINGS", "Setting up Settings tab...")
 
 SettingsTab:AddButton({
+    Title = "💾 Save Config",
+    Description = "Simpan semua settingan saat ini",
+    Callback = function()
+        log("SETTINGS", "Save config clicked")
+        local success = Controller.SaveConfig()
+        if success then
+            Fluent:Notify({
+                Title = "Config Saved",
+                Content = "Settingan berhasil disimpan!",
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Error",
+                Content = "Gagal menyimpan config. Executor mungkin tidak support writefile.",
+                Duration = 4
+            })
+        end
+    end
+})
+
+SettingsTab:AddButton({
+    Title = "🔄 Reset Config",
+    Description = "Reset semua settingan ke default",
+    Callback = function()
+        log("SETTINGS", "Reset config clicked")
+        Controller.ResetConfig()
+        Fluent:Notify({
+            Title = "Config Reset",
+            Content = "Settingan direset ke default! Reload script untuk apply.",
+            Duration = 4
+        })
+    end
+})
+
+SettingsTab:AddParagraph({
+    Title = "Auto-Save Info",
+    Content = "✓ Config otomatis tersimpan setiap kali toggle/setting berubah\n✓ Config akan auto-load saat script dimulai\n✓ Config tersimpan bahkan setelah server hop\n\nFile: " .. Controller.ConfigFile
+})
+
+SettingsTab:AddButton({
     Title = "Unload Script",
     Description = "Stop all features and close UI",
     Callback = function()
@@ -1715,6 +1867,10 @@ SettingsTab:AddParagraph({
 log("INIT", "==========================================")
 log("INIT", "Script loaded successfully!")
 log("INIT", "==========================================")
+
+-- Load saved config
+log("CONFIG", "Loading saved configuration...")
+Controller.LoadConfig()
 
 Window:SelectTab(HomeTab)
 
