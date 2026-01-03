@@ -120,16 +120,16 @@ function CustomUI:CreateWindow(config)
         end
     end)
     
-    -- Modern Close Button
+    -- Modern Close Button (No red, better visibility)
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Size = UDim2.new(0, 35, 0, 35)
     CloseButton.Position = UDim2.new(1, -40, 0, 2.5)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-    CloseButton.BackgroundTransparency = 0.2
+    CloseButton.BackgroundColor3 = Theme.Secondary
+    CloseButton.BackgroundTransparency = 0.3
     CloseButton.Text = "✕"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 18
+    CloseButton.TextColor3 = Theme.Text
+    CloseButton.TextSize = 20
     CloseButton.Font = Enum.Font.GothamBold
     CloseButton.BorderSizePixel = 0
     CloseButton.Parent = TitleBar
@@ -138,13 +138,33 @@ function CustomUI:CreateWindow(config)
     CloseCorner.CornerRadius = UDim.new(0, 8)
     CloseCorner.Parent = CloseButton
     
-    -- Hover effect
+    local CloseStroke = Instance.new("UIStroke")
+    CloseStroke.Color = Theme.Border
+    CloseStroke.Thickness = 1
+    CloseStroke.Transparency = 0.6
+    CloseStroke.Parent = CloseButton
+    
+    -- Hover effect with color change
     CloseButton.MouseEnter:Connect(function()
-        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0.1,
+            TextColor3 = Theme.Accent
+        }):Play()
+        TweenService:Create(CloseStroke, TweenInfo.new(0.2), {
+            Thickness = 2,
+            Transparency = 0.3
+        }):Play()
     end)
     
     CloseButton.MouseLeave:Connect(function()
-        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0.3,
+            TextColor3 = Theme.Text
+        }):Play()
+        TweenService:Create(CloseStroke, TweenInfo.new(0.2), {
+            Thickness = 1,
+            Transparency = 0.6
+        }):Play()
     end)
     
     CloseButton.MouseButton1Click:Connect(function()
@@ -366,9 +386,9 @@ function CustomUI:CreateWindow(config)
             ToggleLabel.Parent = ToggleFrame
             
             local ToggleButton = Instance.new("TextButton")
-            ToggleButton.Size = UDim2.new(0, 40, 0, 20)
-            ToggleButton.Position = UDim2.new(1, -45, 0.5, -10)
-            ToggleButton.BackgroundColor3 = toggled and Theme.Accent or Color3.fromRGB(60, 60, 60)
+            ToggleButton.Size = UDim2.new(0, 44, 0, 22)
+            ToggleButton.Position = UDim2.new(1, -48, 0.5, -11)
+            ToggleButton.BackgroundColor3 = toggled and Theme.Accent or Theme.SecondaryLight
             ToggleButton.Text = ""
             ToggleButton.BorderSizePixel = 0
             ToggleButton.Parent = ToggleFrame
@@ -377,10 +397,16 @@ function CustomUI:CreateWindow(config)
             ToggleBtnCorner.CornerRadius = UDim.new(1, 0)
             ToggleBtnCorner.Parent = ToggleButton
             
+            local ToggleBtnStroke = Instance.new("UIStroke")
+            ToggleBtnStroke.Color = toggled and Theme.Accent or Theme.Border
+            ToggleBtnStroke.Thickness = 1
+            ToggleBtnStroke.Transparency = 0.5
+            ToggleBtnStroke.Parent = ToggleButton
+            
             local ToggleIndicator = Instance.new("Frame")
-            ToggleIndicator.Size = UDim2.new(0, 16, 0, 16)
-            ToggleIndicator.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-            ToggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ToggleIndicator.Size = UDim2.new(0, 18, 0, 18)
+            ToggleIndicator.Position = toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+            ToggleIndicator.BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Theme.TextDim
             ToggleIndicator.BorderSizePixel = 0
             ToggleIndicator.Parent = ToggleButton
             
@@ -388,15 +414,26 @@ function CustomUI:CreateWindow(config)
             IndicatorCorner.CornerRadius = UDim.new(1, 0)
             IndicatorCorner.Parent = ToggleIndicator
             
+            local IndicatorShadow = Instance.new("UIStroke")
+            IndicatorShadow.Color = Color3.fromRGB(0, 0, 0)
+            IndicatorShadow.Thickness = 1
+            IndicatorShadow.Transparency = 0.8
+            IndicatorShadow.Parent = ToggleIndicator
+            
             ToggleButton.MouseButton1Click:Connect(function()
                 toggled = not toggled
                 
-                TweenService:Create(ToggleButton, TweenInfo.new(0.2), {
-                    BackgroundColor3 = toggled and Theme.Accent or Color3.fromRGB(60, 60, 60)
+                TweenService:Create(ToggleButton, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {
+                    BackgroundColor3 = toggled and Theme.Accent or Theme.SecondaryLight
                 }):Play()
                 
-                TweenService:Create(ToggleIndicator, TweenInfo.new(0.2), {
-                    Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                TweenService:Create(ToggleBtnStroke, TweenInfo.new(0.25), {
+                    Color = toggled and Theme.Accent or Theme.Border
+                }):Play()
+                
+                TweenService:Create(ToggleIndicator, TweenInfo.new(0.25, Enum.EasingStyle.Quart), {
+                    Position = toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
+                    BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Theme.TextDim
                 }):Play()
                 
                 if config.Callback then
@@ -406,8 +443,10 @@ function CustomUI:CreateWindow(config)
             
             function Toggle:SetValue(value)
                 toggled = value
-                ToggleButton.BackgroundColor3 = toggled and Theme.Accent or Color3.fromRGB(60, 60, 60)
-                ToggleIndicator.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                ToggleButton.BackgroundColor3 = toggled and Theme.Accent or Theme.SecondaryLight
+                ToggleBtnStroke.Color = toggled and Theme.Accent or Theme.Border
+                ToggleIndicator.Position = toggled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+                ToggleIndicator.BackgroundColor3 = toggled and Color3.fromRGB(255, 255, 255) or Theme.TextDim
             end
             
             -- AddColorPicker method untuk toggle
@@ -456,11 +495,17 @@ function CustomUI:CreateWindow(config)
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = id
-            SliderFrame.Size = UDim2.new(1, -10, 0, 50)
+            SliderFrame.Size = UDim2.new(1, -10, 0, 55)
             SliderFrame.BackgroundColor3 = Theme.Secondary
             SliderFrame.BackgroundTransparency = 0.6
             SliderFrame.BorderSizePixel = 0
             SliderFrame.Parent = TabContent
+            
+            local SliderStroke = Instance.new("UIStroke")
+            SliderStroke.Color = Theme.Border
+            SliderStroke.Thickness = 1
+            SliderStroke.Transparency = 0.7
+            SliderStroke.Parent = SliderFrame
             
             local SliderCorner = Instance.new("UICorner")
             SliderCorner.CornerRadius = UDim.new(0, 6)
@@ -489,15 +534,21 @@ function CustomUI:CreateWindow(config)
             SliderValue.Parent = SliderFrame
             
             local SliderBar = Instance.new("Frame")
-            SliderBar.Size = UDim2.new(1, -20, 0, 6)
-            SliderBar.Position = UDim2.new(0, 10, 1, -15)
-            SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SliderBar.Size = UDim2.new(1, -20, 0, 8)
+            SliderBar.Position = UDim2.new(0, 10, 1, -18)
+            SliderBar.BackgroundColor3 = Theme.SecondaryLight
             SliderBar.BorderSizePixel = 0
             SliderBar.Parent = SliderFrame
             
             local SliderBarCorner = Instance.new("UICorner")
             SliderBarCorner.CornerRadius = UDim.new(1, 0)
             SliderBarCorner.Parent = SliderBar
+            
+            local SliderBarStroke = Instance.new("UIStroke")
+            SliderBarStroke.Color = Theme.Border
+            SliderBarStroke.Thickness = 1
+            SliderBarStroke.Transparency = 0.8
+            SliderBarStroke.Parent = SliderBar
             
             local SliderFill = Instance.new("Frame")
             SliderFill.Size = UDim2.new((value - config.Min) / (config.Max - config.Min), 0, 1, 0)
@@ -508,6 +559,23 @@ function CustomUI:CreateWindow(config)
             local SliderFillCorner = Instance.new("UICorner")
             SliderFillCorner.CornerRadius = UDim.new(1, 0)
             SliderFillCorner.Parent = SliderFill
+            
+            -- Slider thumb/knob
+            local SliderThumb = Instance.new("Frame")
+            SliderThumb.Size = UDim2.new(0, 16, 0, 16)
+            SliderThumb.Position = UDim2.new((value - config.Min) / (config.Max - config.Min), -8, 0.5, -8)
+            SliderThumb.BackgroundColor3 = Theme.Accent
+            SliderThumb.BorderSizePixel = 0
+            SliderThumb.Parent = SliderBar
+            
+            local ThumbCorner = Instance.new("UICorner")
+            ThumbCorner.CornerRadius = UDim.new(1, 0)
+            ThumbCorner.Parent = SliderThumb
+            
+            local ThumbStroke = Instance.new("UIStroke")
+            ThumbStroke.Color = Color3.fromRGB(255, 255, 255)
+            ThumbStroke.Thickness = 2
+            ThumbStroke.Parent = SliderThumb
             
             local dragging = false
             
@@ -536,6 +604,7 @@ function CustomUI:CreateWindow(config)
                     
                     SliderValue.Text = tostring(value)
                     SliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
+                    SliderThumb.Position = UDim2.new(relativePos, -8, 0.5, -8)
                     
                     if config.Callback then
                         task.spawn(config.Callback, value)
@@ -545,8 +614,10 @@ function CustomUI:CreateWindow(config)
             
             function Slider:SetValue(newValue)
                 value = math.clamp(newValue, config.Min, config.Max)
+                local relativePos = (value - config.Min) / (config.Max - config.Min)
                 SliderValue.Text = tostring(value)
-                SliderFill.Size = UDim2.new((value - config.Min) / (config.Max - config.Min), 0, 1, 0)
+                SliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
+                SliderThumb.Position = UDim2.new(relativePos, -8, 0.5, -8)
             end
             
             return Slider
@@ -638,32 +709,63 @@ function CustomUI:CreateWindow(config)
             DropdownList.Position = UDim2.new(0, 0, 0, 35)
             DropdownList.BackgroundTransparency = 1
             DropdownList.BorderSizePixel = 0
-            DropdownList.ScrollBarThickness = 3
+            DropdownList.ScrollBarThickness = 4
+            DropdownList.ScrollBarImageColor3 = Theme.Accent
+            DropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
             DropdownList.Parent = DropdownFrame
             
             local ListLayout = Instance.new("UIListLayout")
             ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            ListLayout.Padding = UDim.new(0, 2)
             ListLayout.Parent = DropdownList
             
-            for _, v in ipairs(config.Values) do
+            -- Create option buttons for each value
+            for i, v in ipairs(config.Values) do
                 local OptionButton = Instance.new("TextButton")
-                OptionButton.Size = UDim2.new(1, 0, 0, 30)
-                OptionButton.BackgroundColor3 = Theme.Background
-                OptionButton.BackgroundTransparency = 0.5
+                OptionButton.Name = "Option_" .. i
+                OptionButton.Size = UDim2.new(1, -5, 0, 32)
+                OptionButton.BackgroundColor3 = Theme.SecondaryLight
+                OptionButton.BackgroundTransparency = 0.3
                 OptionButton.BorderSizePixel = 0
                 OptionButton.Text = tostring(v)
                 OptionButton.TextColor3 = Theme.Text
-                OptionButton.TextSize = 12
+                OptionButton.TextSize = 13
                 OptionButton.Font = Enum.Font.Gotham
+                OptionButton.LayoutOrder = i
                 OptionButton.Parent = DropdownList
+                
+                local OptionCorner = Instance.new("UICorner")
+                OptionCorner.CornerRadius = UDim.new(0, 4)
+                OptionCorner.Parent = OptionButton
+                
+                -- Hover effect
+                OptionButton.MouseEnter:Connect(function()
+                    TweenService:Create(OptionButton, TweenInfo.new(0.15), {
+                        BackgroundTransparency = 0.1,
+                        TextColor3 = Theme.Accent
+                    }):Play()
+                end)
+                
+                OptionButton.MouseLeave:Connect(function()
+                    TweenService:Create(OptionButton, TweenInfo.new(0.15), {
+                        BackgroundTransparency = 0.3,
+                        TextColor3 = Theme.Text
+                    }):Play()
+                end)
                 
                 OptionButton.MouseButton1Click:Connect(function()
                     selected = v
                     DropdownLabel.Text = config.Title .. ": " .. tostring(selected)
                     
+                    -- Close dropdown with animation
                     opened = false
                     TweenService:Create(DropdownFrame, TweenInfo.new(0.2), {Size = UDim2.new(1, -10, 0, 35)}):Play()
                     TweenService:Create(DropdownIcon, TweenInfo.new(0.2), {Rotation = 0}):Play()
+                    
+                    -- Flash effect on selection
+                    TweenService:Create(OptionButton, TweenInfo.new(0.1), {BackgroundColor3 = Theme.Accent}):Play()
+                    task.wait(0.1)
+                    TweenService:Create(OptionButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.SecondaryLight}):Play()
                     
                     if config.Callback then
                         task.spawn(config.Callback, v)
@@ -672,12 +774,16 @@ function CustomUI:CreateWindow(config)
             end
             
             ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                DropdownList.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y)
+                DropdownList.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 5)
             end)
             
             DropdownButton.MouseButton1Click:Connect(function()
                 opened = not opened
-                local targetSize = opened and math.min(#config.Values * 30 + 35, 150) or 35
+                -- Calculate proper size based on number of items (32px height + 2px padding per item)
+                local itemHeight = 34 -- 32 + 2 padding
+                local maxDisplayItems = 5 -- Max items to show before scrolling
+                local calculatedHeight = math.min(#config.Values * itemHeight, maxDisplayItems * itemHeight)
+                local targetSize = opened and (calculatedHeight + 35) or 35
                 
                 TweenService:Create(DropdownFrame, TweenInfo.new(0.2), {Size = UDim2.new(1, -10, 0, targetSize)}):Play()
                 TweenService:Create(DropdownIcon, TweenInfo.new(0.2), {Rotation = opened and 180 or 0}):Play()
