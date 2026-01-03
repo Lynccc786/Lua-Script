@@ -792,7 +792,7 @@ function ServerHopController.hopToLessPopulated(maxPlayers)
         
         -- Set flag to re-execute script after hop
         local queueData = {
-            ScriptURL = "https://raw.githubusercontent.com/YourRepo/scriptForge2.lua", -- Replace with your script URL
+            ScriptURL = "https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/TheForge/main.lua", -- Replace with your script URL
             AutoLoad = true,
             Timestamp = os.time()
         }
@@ -804,9 +804,9 @@ function ServerHopController.hopToLessPopulated(maxPlayers)
         
         -- Use queue_on_teleport to re-execute
         if syn and syn.queue_on_teleport then
-            syn.queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/YourRepo/scriptForge2.lua"))()]]) -- Replace URL
+            syn.queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/TheForge/main.lua"))()]])
         elseif queue_on_teleport then
-            queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/YourRepo/scriptForge2.lua"))()]]) -- Replace URL
+            queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/Lynccc786/Lua-Script/refs/heads/main/TheForge/main.lua"))()]])
         end
         
         Fluent:Notify({
