@@ -1,5 +1,5 @@
 -- Custom UI Library dengan nuansa hijau transparan
--- Dibuat khusus untuk Clover Hub
+-- Dibuat khusus untuk Clover Hub - Modern Design
 
 local CustomUI = {}
 local TweenService = game:GetService("TweenService")
@@ -8,14 +8,18 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
--- Theme colors (Hijau Transparan)
+-- Modern Theme colors (Hijau Transparan dengan gradients)
 local Theme = {
-    Background = Color3.fromRGB(15, 25, 15),
-    BackgroundTransparency = 0.3,
-    Accent = Color3.fromRGB(50, 255, 120),
-    Secondary = Color3.fromRGB(30, 60, 35),
-    Text = Color3.fromRGB(230, 255, 230),
-    Border = Color3.fromRGB(50, 150, 80),
+    Background = Color3.fromRGB(10, 15, 10),
+    BackgroundTransparency = 0.15,
+    Accent = Color3.fromRGB(76, 255, 150), -- Bright neon green
+    AccentDark = Color3.fromRGB(45, 200, 110),
+    Secondary = Color3.fromRGB(20, 35, 25),
+    SecondaryLight = Color3.fromRGB(30, 50, 35),
+    Text = Color3.fromRGB(240, 255, 245),
+    TextDim = Color3.fromRGB(180, 200, 185),
+    Border = Color3.fromRGB(76, 255, 150),
+    Shadow = Color3.fromRGB(0, 0, 0),
 }
 
 function CustomUI:CreateWindow(config)
@@ -30,51 +34,106 @@ function CustomUI:CreateWindow(config)
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.Parent = CoreGui
     
-    -- Main Frame
+    -- Main Frame with modern styling
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 600, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 650, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
     MainFrame.BackgroundColor3 = Theme.Background
     MainFrame.BackgroundTransparency = Theme.BackgroundTransparency
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
     
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Parent = MainFrame
     
+    -- Modern border with glow effect
     local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = Theme.Border
-    MainStroke.Thickness = 2
-    MainStroke.Transparency = 0.5
+    MainStroke.Color = Theme.Accent
+    MainStroke.Thickness = 1
+    MainStroke.Transparency = 0.3
     MainStroke.Parent = MainFrame
-    
-    -- Title Bar
+    Modern Title Bar with gradient
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
-    TitleBar.Size = UDim2.new(1, 0, 0, 35)
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
     TitleBar.BackgroundColor3 = Theme.Secondary
-    TitleBar.BackgroundTransparency = 0.2
+    TitleBar.BackgroundTransparency = 0.1
     TitleBar.BorderSizePixel = 0
     TitleBar.Parent = MainFrame
     
     local TitleCorner = Instance.new("UICorner")
-    TitleCorner.CornerRadius = UDim.new(0, 10)
+    TitleCorner.CornerRadius = UDim.new(0, 12)
     TitleCorner.Parent = TitleBar
     
+    -- Gradient overlay for modern look
+    local TitleGradient = Instance.new("UIGradient")
+    TitleGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Theme.SecondaryLight),
+        ColorSequenceKeypoint.new(1, Theme.Secondary)
+    }
+    TitleGradient.Rotation = 90
+    TitleGradient.Parent = TitleBar
+    
+    -- Title with modern font
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Size = UDim2.new(1, -100, 1, 0)
-    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.Size = UDim2.new(1, -120, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
     Title.BackgroundTransparency = 1
-    Title.Text = config.Title or "Clover Hub"
+    Title.Text = "🍀 " .. (config.Title or "Clover Hub")
     Title.TextColor3 = Theme.Accent
-    Title.TextSize = 18
+    Title.TextSize = 20
     Title.Font = Enum.Font.GothamBold
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = TitleBar
     
+    -- Animated glow effect
+    local TitleGlow = Instance.new("UIStroke")
+    TitleGlow.Color = Theme.Accent
+    TitleGlow.Thickness = 0
+    TitleGlow.Transparency = 0.5
+    TitModern Close Button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 35, 0, 35)
+    CloseButton.Position = UDim2.new(1, -40, 0, 2.5)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    CloseButton.BackgroundTransparency = 0.2
+    CloseButton.Text = "✕"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 18
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Parent = TitleBar
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 8)
+    CloseCorner.Parent = CloseButton
+    
+    -- Hover effect
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+    end)
+    Modern Tab Container with better styling
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Name = "TabContainer"
+    TabContainer.Size = UDim2.new(0, 160, 1, -50)
+    TabContainer.Position = UDim2.new(0, 8, 0, 48)
+    TabContainer.BackgroundTransparency = 1
+    TabContainer.Parent = MainFrame
+    
+    local TabLayout = Instance.new("UIListLayout")
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabLayout.Padding = UDim.new(0, 6)
+    TabLayout.Parent = TabContainer
+    
+    -- Modern Content Container
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Size = UDim2.new(1, -180, 1, -55)
+    ContentContainer.Position = UDim2.new(0, 175, 0, 48
     -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
@@ -153,22 +212,45 @@ function CustomUI:CreateWindow(config)
         local Tab = {}
         Tab.Elements = {}
         
-        -- Tab Button
+        -- Modern Tab Button with gradient and hover effects
         local TabButton = Instance.new("TextButton")
         TabButton.Name = config.Title
-        TabButton.Size = UDim2.new(1, -10, 0, 35)
+        TabButton.Size = UDim2.new(1, -5, 0, 38)
         TabButton.BackgroundColor3 = Theme.Secondary
-        TabButton.BackgroundTransparency = 0.5
+        TabButton.BackgroundTransparency = 0.4
         TabButton.Text = config.Title
-        TabButton.TextColor3 = Theme.Text
+        TabButton.TextColor3 = Theme.TextDim
         TabButton.TextSize = 14
-        TabButton.Font = Enum.Font.Gotham
+        TabButton.Font = Enum.Font.GothamSemibold
         TabButton.BorderSizePixel = 0
         TabButton.Parent = TabContainer
         
         local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.CornerRadius = UDim.new(0, 8)
         TabCorner.Parent = TabButton
+        
+        local TabStroke = Instance.new("UIStroke")
+        TabStroke.Color = Theme.Border
+        TabStroke.Thickness = 0
+        TabStroke.Transparency = 0.8
+        TabStroke.Parent = TabButton
+        
+        -- Hover animation
+        TabButton.MouseEnter:Connect(function()
+            if not TabContent.Visible then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.2
+                }):Play()
+            end
+        end)
+        
+        TabButton.MouseLeave:Connect(function()
+            if not TabContent.Visible then
+                TweenService:Create(TabButton, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.4
+                }):Play()
+            end
+        end)
         
         -- Tab Content
         local TabContent = Instance.new("ScrollingFrame")
@@ -192,27 +274,40 @@ function CustomUI:CreateWindow(config)
         end)
         
         TabButton.MouseButton1Click:Connect(function()
-            -- Hide all tabs
+            -- Hide all tabs with animation
             for _, tab in pairs(Window.Tabs) do
                 tab.Content.Visible = false
-                tab.Button.BackgroundTransparency = 0.5
+                TweenService:Create(tab.Button, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.4,
+                    TextColor3 = Theme.TextDim
+                }):Play()
+                if tab.Stroke then
+                    TweenService:Create(tab.Stroke, TweenInfo.new(0.2), {Thickness = 0}):Play()
+                end
             end
             
-            -- Show this tab
+            -- Show this tab with animation
             TabContent.Visible = true
-            TabButton.BackgroundTransparency = 0.2
+            TweenService:Create(TabButton, TweenInfo.new(0.2), {
+                BackgroundTransparency = 0.1,
+                TextColor3 = Theme.Accent
+            }):Play()
+            TweenService:Create(TabStroke, TweenInfo.new(0.2), {Thickness = 1.5}):Play()
             Window.CurrentTab = Tab
         end)
         
-        -- Auto-select first tab
+        -- Auto-select first tab with animation
         if #Window.Tabs == 0 then
             TabContent.Visible = true
-            TabButton.BackgroundTransparency = 0.2
+            TabButton.BackgroundTransparency = 0.1
+            TabButton.TextColor3 = Theme.Accent
+            TabStroke.Thickness = 1.5
             Window.CurrentTab = Tab
         end
         
         Tab.Content = TabContent
         Tab.Button = TabButton
+        Tab.Stroke = TabStroke
         
         -- Add Toggle
         function Tab:AddToggle(id, config)
@@ -285,6 +380,42 @@ function CustomUI:CreateWindow(config)
                 toggled = value
                 ToggleButton.BackgroundColor3 = toggled and Theme.Accent or Color3.fromRGB(60, 60, 60)
                 ToggleIndicator.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            end
+            
+            -- AddColorPicker method untuk toggle
+            function Toggle:AddColorPicker(id, colorConfig)
+                local ColorPicker = {}
+                local currentColor = colorConfig.Default or Color3.fromRGB(255, 255, 255)
+                
+                -- Color preview button
+                local ColorButton = Instance.new("TextButton")
+                ColorButton.Size = UDim2.new(0, 25, 0, 20)
+                ColorButton.Position = UDim2.new(1, -75, 0.5, -10)
+                ColorButton.BackgroundColor3 = currentColor
+                ColorButton.Text = ""
+                ColorButton.BorderSizePixel = 1
+                ColorButton.BorderColor3 = Theme.Border
+                ColorButton.Parent = ToggleFrame
+                
+                local ColorCorner = Instance.new("UICorner")
+                ColorCorner.CornerRadius = UDim.new(0, 4)
+                ColorCorner.Parent = ColorButton
+                
+                ColorButton.MouseButton1Click:Connect(function()
+                    -- Simple color randomizer for now (in real implementation, use color picker GUI)
+                    currentColor = Color3.fromHSV(math.random(), 1, 1)
+                    ColorButton.BackgroundColor3 = currentColor
+                    if colorConfig.Callback then
+                        task.spawn(colorConfig.Callback, currentColor)
+                    end
+                end)
+                
+                function ColorPicker:SetColor(color)
+                    currentColor = color
+                    ColorButton.BackgroundColor3 = color
+                end
+                
+                return ColorPicker
             end
             
             return Toggle
