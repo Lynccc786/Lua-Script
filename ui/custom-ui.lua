@@ -54,7 +54,22 @@ function CustomUI:CreateWindow(config)
     MainStroke.Thickness = 1
     MainStroke.Transparency = 0.3
     MainStroke.Parent = MainFrame
-    Modern Title Bar with gradient
+    
+    -- Shadow effect
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.Size = UDim2.new(1, 30, 1, 30)
+    Shadow.Position = UDim2.new(0, -15, 0, -15)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    Shadow.ImageColor3 = Theme.Shadow
+    Shadow.ImageTransparency = 0.7
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    Shadow.ZIndex = 0
+    Shadow.Parent = MainFrame
+    
+    -- Modern Title Bar with gradient
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Size = UDim2.new(1, 0, 0, 40)
@@ -94,7 +109,18 @@ function CustomUI:CreateWindow(config)
     TitleGlow.Color = Theme.Accent
     TitleGlow.Thickness = 0
     TitleGlow.Transparency = 0.5
-    TitModern Close Button
+    TitleGlow.Parent = Title
+    
+    task.spawn(function()
+        while TitleBar and TitleBar.Parent do
+            TweenService:Create(TitleGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 1}):Play()
+            task.wait(2)
+            TweenService:Create(TitleGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 0}):Play()
+            task.wait(2)
+        end
+    end)
+    
+    -- Modern Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Size = UDim2.new(0, 35, 0, 35)
@@ -116,7 +142,21 @@ function CustomUI:CreateWindow(config)
     CloseButton.MouseEnter:Connect(function()
         TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
     end)
-    Modern Tab Container with better styling
+    
+    CloseButton.MouseLeave:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.2}):Play()
+    end)
+    
+    CloseButton.MouseButton1Click:Connect(function()
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }):Play()
+        task.wait(0.3)
+        ScreenGui:Destroy()
+    end)
+    
+    -- Modern Tab Container with better styling
     local TabContainer = Instance.new("Frame")
     TabContainer.Name = "TabContainer"
     TabContainer.Size = UDim2.new(0, 160, 1, -50)
@@ -133,21 +173,9 @@ function CustomUI:CreateWindow(config)
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
     ContentContainer.Size = UDim2.new(1, -180, 1, -55)
-    ContentContainer.Position = UDim2.new(0, 175, 0, 48
-    -- Close Button
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Position = UDim2.new(1, -35, 0, 2.5)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-    CloseButton.BackgroundTransparency = 0.3
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 16
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.BorderSizePixel = 0
-    CloseButton.Parent = TitleBar
-    
+    ContentContainer.Position = UDim2.new(0, 175, 0, 48)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.Parent = MainFrame
     local CloseCorner = Instance.new("UICorner")
     CloseCorner.CornerRadius = UDim.new(0, 6)
     CloseCorner.Parent = CloseButton
