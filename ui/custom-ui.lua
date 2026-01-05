@@ -29,7 +29,7 @@ local COLORS = {
     Element     = Color3.fromRGB(45, 45, 50),
     Text        = Color3.fromRGB(240, 240, 240),
     TextDim     = Color3.fromRGB(160, 160, 170),
-    Accent      = Color3.fromRGB(0, 255, 160),
+    Accent      = Color3.fromRGB(0, 255, 80), -- hijau neon gelap
     Outline     = Color3.fromRGB(60, 60, 65),
     Shadow      = Color3.fromRGB(0, 0, 0),
     Success     = Color3.fromRGB(46, 204, 113),
@@ -461,7 +461,7 @@ function LIBRARY:Create(config)
     AddStroke(avatar, COLORS.Accent, isMobile and 2 or 1)
 
     local welcomeLabel = Instance.new("TextLabel")
-    welcomeLabel.Text = "Welcome Back,"
+    welcomeLabel.Text = "Welcome,"
     welcomeLabel.Size = isMobile and UDim2.new(0, 140, 0, 28) or UDim2.new(0, 100, 0, 20)
     welcomeLabel.Position = isMobile and UDim2.new(0, 110, 0, 60) or UDim2.new(0, 80, 0, 40)
     welcomeLabel.BackgroundTransparency = 1
@@ -491,19 +491,17 @@ function LIBRARY:Create(config)
     Window.TabContainer.ScrollBarImageColor3 = COLORS.Accent
     Window.TabContainer.Parent = sidebar
 
-    -- [ DISCORD BUTTON ]
-    local discordBtn = Instance.new("TextButton")
+    -- [ DISCORD BUTTON - LOGO ONLY ]
+    local discordBtn = Instance.new("ImageButton")
     discordBtn.Name = "DiscordBtn"
-    discordBtn.Size = UDim2.new(0.85, 0, 0, 38)
-    discordBtn.Position = UDim2.new(0.075, 0, 1, -45)
-    discordBtn.AnchorPoint = Vector2.new(0, 1)
-    discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    discordBtn.Text = "Join Discord"
-    discordBtn.TextColor3 = Color3.fromRGB(255,255,255)
-    discordBtn.Font = Enum.Font.GothamBold
-    discordBtn.TextSize = 15
+    discordBtn.Size = UDim2.new(0, 32, 0, 32)
+    discordBtn.Position = UDim2.new(0.5, -16, 1, -40)
+    discordBtn.AnchorPoint = Vector2.new(0.5, 1)
+    discordBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    discordBtn.Image = "rbxassetid://6035047409" -- Discord logo asset
     discordBtn.Parent = sidebar
     AddCorner(discordBtn, 8)
+    AddStroke(discordBtn, COLORS.Accent, 1)
     discordBtn.MouseButton1Click:Connect(function()
         if config and config.DiscordInvite then
             setclipboard(config.DiscordInvite)
