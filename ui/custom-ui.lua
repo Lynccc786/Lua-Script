@@ -21,82 +21,24 @@ local Mouse = LocalPlayer:GetMouse()
 -- [ THEME CONFIGURATION ]
 
 -- [ THEME SYSTEM ]
-local THEMES = {
-    Default = {
-        Main        = Color3.fromRGB(25, 25, 30),
-        Sidebar     = Color3.fromRGB(30, 30, 35),
-        Section     = Color3.fromRGB(35, 35, 40),
-        Element     = Color3.fromRGB(45, 45, 50),
-        Text        = Color3.fromRGB(240, 240, 240),
-        TextDim     = Color3.fromRGB(160, 160, 170),
-        Accent      = Color3.fromRGB(0, 255, 160),
-        Outline     = Color3.fromRGB(60, 60, 65),
-        Shadow      = Color3.fromRGB(0, 0, 0),
-        Success     = Color3.fromRGB(46, 204, 113),
-        Warning     = Color3.fromRGB(241, 196, 15),
-        Error       = Color3.fromRGB(231, 76, 60),
-        Info        = Color3.fromRGB(52, 152, 219)
-    },
-    Dark = {
-        Main        = Color3.fromRGB(15, 15, 20),
-        Sidebar     = Color3.fromRGB(20, 20, 25),
-        Section     = Color3.fromRGB(25, 25, 30),
-        Element     = Color3.fromRGB(35, 35, 40),
-        Text        = Color3.fromRGB(220, 220, 230),
-        TextDim     = Color3.fromRGB(120, 120, 130),
-        Accent      = Color3.fromRGB(0, 200, 255),
-        Outline     = Color3.fromRGB(40, 40, 45),
-        Shadow      = Color3.fromRGB(0, 0, 0),
-        Success     = Color3.fromRGB(46, 204, 113),
-        Warning     = Color3.fromRGB(241, 196, 15),
-        Error       = Color3.fromRGB(231, 76, 60),
-        Info        = Color3.fromRGB(52, 152, 219)
-    },
-    Light = {
-        Main        = Color3.fromRGB(240, 240, 240),
-        Sidebar     = Color3.fromRGB(220, 220, 220),
-        Section     = Color3.fromRGB(200, 200, 200),
-        Element     = Color3.fromRGB(255, 255, 255),
-        Text        = Color3.fromRGB(30, 30, 30),
-        TextDim     = Color3.fromRGB(120, 120, 120),
-        Accent      = Color3.fromRGB(0, 170, 255),
-        Outline     = Color3.fromRGB(180, 180, 180),
-        Shadow      = Color3.fromRGB(0, 0, 0),
-        Success     = Color3.fromRGB(46, 204, 113),
-        Warning     = Color3.fromRGB(241, 196, 15),
-        Error       = Color3.fromRGB(231, 76, 60),
-        Info        = Color3.fromRGB(52, 152, 219)
-    },
-    Red = {
-        Main        = Color3.fromRGB(40, 10, 10),
-        Sidebar     = Color3.fromRGB(60, 20, 20),
-        Section     = Color3.fromRGB(80, 30, 30),
-        Element     = Color3.fromRGB(100, 40, 40),
-        Text        = Color3.fromRGB(255, 200, 200),
-        TextDim     = Color3.fromRGB(200, 120, 120),
-        Accent      = Color3.fromRGB(255, 60, 60),
-        Outline     = Color3.fromRGB(120, 60, 60),
-        Shadow      = Color3.fromRGB(0, 0, 0),
-        Success     = Color3.fromRGB(46, 204, 113),
-        Warning     = Color3.fromRGB(241, 196, 15),
-        Error       = Color3.fromRGB(231, 76, 60),
-        Info        = Color3.fromRGB(52, 152, 219)
-    }
+
+local COLORS = {
+    Main        = Color3.fromRGB(25, 25, 30),
+    Sidebar     = Color3.fromRGB(30, 30, 35),
+    Section     = Color3.fromRGB(35, 35, 40),
+    Element     = Color3.fromRGB(45, 45, 50),
+    Text        = Color3.fromRGB(240, 240, 240),
+    TextDim     = Color3.fromRGB(160, 160, 170),
+    Accent      = Color3.fromRGB(0, 255, 160),
+    Outline     = Color3.fromRGB(60, 60, 65),
+    Shadow      = Color3.fromRGB(0, 0, 0),
+    Success     = Color3.fromRGB(46, 204, 113),
+    Warning     = Color3.fromRGB(241, 196, 15),
+    Error       = Color3.fromRGB(231, 76, 60),
+    Info        = Color3.fromRGB(52, 152, 219)
 }
 
-local CURRENT_THEME = "Default"
-local COLORS = THEMES[CURRENT_THEME]
 
-
-function LIBRARY:GetTheme()
-    return CURRENT_THEME, COLORS
-end
-
-function LIBRARY:GetAvailableThemes()
-    local t = {}
-    for k in pairs(THEMES) do table.insert(t, k) end
-    return t
-end
 
 local LIBRARY_VERSION = "1.2.0"
 local LIBRARY = {}
