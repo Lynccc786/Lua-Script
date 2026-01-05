@@ -87,16 +87,7 @@ local THEMES = {
 local CURRENT_THEME = "Default"
 local COLORS = THEMES[CURRENT_THEME]
 
-function LIBRARY:SetTheme(themeName)
-    if THEMES[themeName] then
-        CURRENT_THEME = themeName
-        COLORS = THEMES[themeName]
-        -- Optional: refresh UI colors if needed
-        if self._refreshTheme then
-            self:_refreshTheme()
-        end
-    end
-end
+
 
 function LIBRARY:GetTheme()
     return CURRENT_THEME, COLORS
@@ -658,7 +649,7 @@ function LIBRARY:Create(config)
             end
         end)
         if configData then
-            if configData.Theme then self:SetTheme(configData.Theme) end
+            -- if configData.Theme then self:SetTheme(configData.Theme) end
             if configData.Position then main.Position = configData.Position end
         end
     end
