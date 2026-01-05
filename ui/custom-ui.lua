@@ -1,5 +1,5 @@
 --[[
-    CLOVER-HUB UI LIBRARY
+    CLOVER-HUB UI LIBRARY (FIXED VERSION)
     Theme: Dark Green Transparent
     Features: Sidebar with Profile Avatar, Auto-Scale Mobile/PC
 ]]
@@ -22,7 +22,10 @@ local COLORS = {
     -- Warna Interaksi
     TabSelected = Color3.fromRGB(40, 160, 40),   -- Hijau Clover
     TabHover = Color3.fromRGB(30, 60, 30),
-    TabNormal = Color3.TRANSPARENT,              -- Tab biasa transparan
+    
+    -- [FIX] Mengganti Color3.TRANSPARENT (Error) menjadi warna solid gelap
+    -- Transparansi akan diatur lewat property BackgroundTransparency nanti
+    TabNormal = Color3.fromRGB(20, 40, 20),      
     
     -- Aksen
     Accent = Color3.fromRGB(60, 220, 60),        -- Neon Green Clover
@@ -324,7 +327,10 @@ function CloverHub:AddTab(name)
     -- Tombol Tab (Di Sidebar)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.BackgroundColor3 = COLORS.TabNormal
+    
+    -- [FIX] Menggunakan warna valid yang sudah diperbaiki di COLORS
+    btn.BackgroundColor3 = COLORS.TabNormal 
+    
     btn.BackgroundTransparency = 1
     btn.Text = name
     btn.TextColor3 = COLORS.TextSecondary
@@ -397,6 +403,54 @@ function CloverHub:AddTab(name)
     end
 
     return tab
+end
+
+-- ==========================================
+-- GROUP LOGIC (Tambahan untuk support script Fate Trigger)
+-- ==========================================
+-- Fate Trigger menggunakan :AddGroup, jadi kita perlu menambahkannya ke library
+function Tab:AddGroup(text)
+    local group = {}
+    group.Tab = self
+    
+    -- Label Group
+    local label = self:AddLabel(text)
+    label.TextColor3 = COLORS.Accent
+    label.TextSize = 13
+    
+    -- Container Group (Opsional, di sini kita langsung bind ke tab content)
+    
+    -- Mapping fungsi group ke fungsi tab yang sudah ada
+    function group:AddToggle(text, config)
+        self.Tab:AddToggle(text, config.Callback)
+        -- Set default state jika ada di config (perlu modifikasi fungsi AddToggle sedikit untuk support set default value, tapi untuk sekarang callback cukup)
+        if config.Default then
+            config.Callback(config.Default)
+        end
+    end
+    
+    function group:AddSlider(text, config)
+        -- Kita belum punya fungsi slider asli di library simple ini, kita buat text box sederhana sebagai pengganti sementara
+        self.Tab:AddTextBox(text .. " (Min:"..config.Min.."-Max:"..config.Max..")", function(val)
+            local num = tonumber(val)
+            if num then config.Callback(num) end
+        end)
+    end
+    
+    function group:AddDropdown(text, config)
+        -- Belum ada dropdown asli, ganti dengan Toggle cycle atau textbox
+        self.Tab:AddLabel("[Dropdown] " .. text .. ": " .. table.concat(config.Values, ", "))
+        self.Tab:AddTextBox("Type selection here", function(val)
+             config.Callback(val)
+        end)
+    end
+    
+    function group:AddColorpicker(text, config)
+         -- Belum ada colorpicker asli
+         self.Tab:AddLabel("[Color] " .. text .. " (Not implemented in UI)")
+    end
+
+    return group
 end
 
 -- ==========================================
@@ -498,29 +552,4 @@ function Tab:AddLabel(text)
     return lbl
 end
 
--- ==========================================
--- EXAMPLE USAGE
--- ==========================================
-
-local Hub = CloverHub:Create({
-    Title = "Clover-Hub | Premium"
-})
-
--- Tab 1: Home
-local Home = Hub:AddTab("Home")
-Home:AddLabel("Welcome to Clover-Hub!")
-Home:AddButton("Execute Main Script", function()
-    print("Executing...")
-end)
-Home:AddToggle("Auto Farm Clover", function(state)
-    print("Auto Farm:", state)
-end)
-
--- Tab 2: Settings
-local Settings = Hub:AddTab("Settings")
-Settings:AddTextBox("Enter Webhook URL", function(txt)
-    print("Webhook:", txt)
-end)
-Settings:AddButton("Unload UI", function()
-    Hub.ScreenGui:Destroy()
-end)
+return CloverHub
