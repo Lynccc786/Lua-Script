@@ -492,16 +492,32 @@ function LIBRARY:Create(config)
     Window.TabContainer.Parent = sidebar
 
     -- [ DISCORD BUTTON - LOGO ONLY ]
+    -- [ DISCORD BUTTON - LANDSCAPE ]
     local discordBtn = Instance.new("ImageButton")
     discordBtn.Name = "DiscordBtn"
-    discordBtn.Size = UDim2.new(0, 32, 0, 32)
-    discordBtn.Position = UDim2.new(0.5, -16, 1, -40)
-    discordBtn.AnchorPoint = Vector2.new(0.5, 1)
-    discordBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    discordBtn.Image = "rbxassetid://6035047409" -- Discord logo asset
+    discordBtn.Size = UDim2.new(1, -30, 0, 20)
+    discordBtn.Position = UDim2.new(0, 15, 1, -8)
+    discordBtn.AnchorPoint = Vector2.new(0, 1)
+    discordBtn.BackgroundColor3 = COLORS.Sidebar
+    discordBtn.BorderSizePixel = 0
+    discordBtn.Image = ""
+    discordBtn.AutoButtonColor = true
     discordBtn.Parent = sidebar
     AddCorner(discordBtn, 8)
     AddStroke(discordBtn, COLORS.Accent, 1)
+
+    local discordText = Instance.new("TextLabel")
+    discordText.Name = "DiscordText"
+    discordText.Size = UDim2.new(1, 0, 1, 0)
+    discordText.Position = UDim2.new(0, 0, 0, 0)
+    discordText.BackgroundTransparency = 1
+    discordText.Text = "Join Discord"
+    discordText.TextColor3 = COLORS.Text
+    discordText.Font = Enum.Font.Gotham
+    discordText.TextSize = 10
+    discordText.TextXAlignment = Enum.TextXAlignment.Center
+    discordText.Parent = discordBtn
+
     discordBtn.MouseButton1Click:Connect(function()
         if config and config.DiscordInvite then
             setclipboard(config.DiscordInvite)
@@ -687,8 +703,9 @@ function LIBRARY:AddTab(name)
     
     function Tab:AddGroup(title, side)
         local Group = {}
-        local parentColumn = (side and side:lower() == "right") and rightColumn or leftColumn
-        
+        -- default: left, jika side == 'right' maka ke kolom kanan
+        local parentColumn = (side and tostring(side):lower() == "right") and rightColumn or leftColumn
+
         local groupLabel = Instance.new("TextLabel")
         groupLabel.Text = title:upper()
         groupLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -698,20 +715,23 @@ function LIBRARY:AddTab(name)
         groupLabel.TextSize = 12
         groupLabel.TextXAlignment = Enum.TextXAlignment.Left
         groupLabel.Parent = parentColumn
-        
+
         local groupContainer = Instance.new("Frame")
         groupContainer.Size = UDim2.new(1, 0, 0, 0)
         groupContainer.BackgroundTransparency = 1
         groupContainer.Parent = parentColumn
-        
+
         local groupLayout = Instance.new("UIListLayout")
         groupLayout.Padding = UDim.new(0, 8)
         groupLayout.SortOrder = Enum.SortOrder.LayoutOrder
         groupLayout.Parent = groupContainer
-        
+
         groupLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             groupContainer.Size = UDim2.new(1, 0, 0, groupLayout.AbsoluteContentSize.Y)
         end)
+
+        -- expose parentColumn for test/demo if needed
+        Group._parentColumn = parentColumn
         
         -- [ BUTTON ]
         function Group:AddButton(text, callback)
@@ -906,7 +926,7 @@ function LIBRARY:AddTab(name)
             inputBox.PlaceholderColor3 = COLORS.TextDim
             inputBox.Font = Enum.Font.Gotham
             inputBox.TextSize = 12
-            inputBox.ClearButtonMode = Enum.ClearButtonMode.WhileEditing
+            -- inputBox.ClearButtonMode = Enum.ClearButtonMode.WhileEditing -- Not supported in all Roblox environments
             inputBox.Parent = textboxFrame
             AddCorner(inputBox, 4)
             
@@ -1008,6 +1028,69 @@ function LIBRARY:AddTab(name)
         end
         
         -- [ MULTI-VALUE DROPDOWN ]
+                -- [ KEYBIND ]
+                function Group:AddKeybind(text, config)
+                    local default = config.Default or Enum.KeyCode.F
+                    local callback = config.Callback or function() end
+                    local keybindFrame = Instance.new("TextButton")
+                    keybindFrame.Size = UDim2.new(1, 0, 0, 35)
+                    keybindFrame.BackgroundColor3 = COLORS.Element
+                    keybindFrame.Text = ""
+                    keybindFrame.AutoButtonColor = false
+                    keybindFrame.Parent = groupContainer
+                    AddCorner(keybindFrame, 6)
+
+                    local label = Instance.new("TextLabel")
+                    label.Text = text
+                    label.Size = UDim2.new(0.55, 0, 1, 0)
+                    label.Position = UDim2.new(0, 10, 0, 0)
+                    label.BackgroundTransparency = 1
+                    label.TextColor3 = COLORS.Text
+                    label.Font = Enum.Font.GothamMedium
+                    label.TextSize = 13
+                    label.TextXAlignment = Enum.TextXAlignment.Left
+                    label.Parent = keybindFrame
+
+                    local keyLabel = Instance.new("TextLabel")
+                    keyLabel.Text = tostring(default.Name or default)
+                    keyLabel.Size = UDim2.new(0.3, 0, 0.7, 0)
+                    keyLabel.Position = UDim2.new(0.6, 0, 0.15, 0)
+                    keyLabel.BackgroundTransparency = 1
+                    keyLabel.TextColor3 = COLORS.Accent
+                    keyLabel.Font = Enum.Font.GothamBold
+                    keyLabel.TextSize = 13
+                    keyLabel.TextXAlignment = Enum.TextXAlignment.Center
+                    keyLabel.Parent = keybindFrame
+
+                    local waiting = false
+                    local currentKey = default
+
+                    keybindFrame.MouseButton1Click:Connect(function()
+                        if waiting then return end
+                        waiting = true
+                        keyLabel.Text = "..."
+                        local conn
+                        conn = UserInputService.InputBegan:Connect(function(input, gpe)
+                            if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+                                currentKey = input.KeyCode
+                                keyLabel.Text = tostring(currentKey.Name or currentKey)
+                                waiting = false
+                                callback(currentKey)
+                                if conn then conn:Disconnect() end
+                            end
+                        end)
+                    end)
+
+                    -- Minimize UI with keybind
+                    UserInputService.InputBegan:Connect(function(input, gpe)
+                        if not gpe and input.KeyCode == currentKey then
+                            local gui = keybindFrame:FindFirstAncestorWhichIsA("ScreenGui")
+                            if gui then
+                                gui.Enabled = not gui.Enabled
+                            end
+                        end
+                    end)
+                end
         function Group:AddMultiDropdown(text, config)
             local options = config.Values or {}
             local default = config.Default or {}
